@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+        http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+
+    <int:channel id="requestChannel"/>
+    <int:channel id="replyChannel"/>
+
+    <!-- TCP Inbound -->
+    <int-ip:tcp-connection-factory id="connectionFactory"
+                                   port="${app.tcp.port}"
+                                   type="server"
+                                   backlog="${app.thread-size}"
+                                   deserializer="serializer"
+                                   task-executor="tcpExecutor"/>
+    <bean id="serializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer"/>
+    <task:executor id="tcpExecutor" pool-size="${app.server-thread-size}-${app.server-thread-size}" queue-capacity="${app.server-thread-size}"/>
+
+    <int-ip:tcp-inbound-gateway request-channel="requestChannel" reply-channel="replyChannel"
+                                connection-factory="connectionFactory"/>
+
+    <!--<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter">-->
+        <!--<property name="beans">-->
+            <!--<map>-->
+                <!--<entry key="bean:name=tcpExecutor" value-ref="tcpExecutor"/>-->
+            <!--</map>-->
+        <!--</property>-->
+    <!--</bean>-->
+    <!-- service -->
+    <int:service-activator id="inboundServiceActivator" input-channel="requestChannel" output-channel="replyChannel"
+                            ref="inboundService" method="execute"/>
+
+    <bean id="countdownLatch" class="java.util.concurrent.CountDownLatch">
+        <constructor-arg value="${app.thread-size}"/>
+    </bean>
+    <bean id="inboundService" class="com.example.spring.integration.tcpperfdemo.service.InboundService">
+        <constructor-arg ref="countdownLatch"/>
+    </bean>
+
+    <!-- client -->
+    <bean id="clientService" class="com.example.spring.integration.tcpperfdemo.client.ClientService">
+        <constructor-arg ref="blockingQueue"/>
+        <constructor-arg value="${app.tcp.port}"/>
+    </bean>
+    <bean id="blockingQueue" class="java.util.concurrent.ArrayBlockingQueue" >
+        <constructor-arg value="${app.thread-size}"/>
+    </bean>
+    <task:annotation-driven/>
+    <task:executor id="clientExecutor" pool-size="${app.thread-size}-${app.thread-size}" queue-capacity="${app.thread-size}"/>
+</beans>

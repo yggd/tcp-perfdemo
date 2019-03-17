@@ -1,0 +1,9 @@
+app:
+  tcp:
+    port: 4567
+  thread-size: 100
+  server-thread-size: 101
+
+spring:
+  jmx:
+    enabled: true
