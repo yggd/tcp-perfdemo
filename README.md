@@ -15,7 +15,7 @@ TCPConnectionFactoryで最大接続数 + 1のスレッドプールを用意す�
 最大接続数と同数のサーバスレッドプールを用意すると、+1分のスレッド待ちキュー送りにされてつまる。
 CFにtaskExecutorを指定しなくてもサーバ側で+1スレッド余計に起動している事象はデバッガなどで確認できる。
 
-TODO 最大接続数1でも余計なスレッドが起動している画像
+![最大接続数1でも余計なサーバースレッドが起動している](https://raw.githubusercontent.com/yggd/tcp-perfdemo/master/plusonethread.png)
 
 ### ServerSocketのバックログを明示指定する。
 
