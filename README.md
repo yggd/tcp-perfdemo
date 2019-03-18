@@ -20,7 +20,13 @@ CFにtaskExecutorを指定しなくてもサーバ側で+1スレッド余計に�
 ### ServerSocketのバックログを明示指定する。
 
 Javaのデフォルトだと50らしいが20あたりからConnection Resetが発生して明らかに足りていない。
-https://docs.oracle.com/javase/jp/8/docs/api/index.html?java/net/Socket.html
+https://docs.oracle.com/javase/jp/8/docs/api/java/net/ServerSocket.html#ServerSocket-int-
+
+> 受信する接続(接続要求)のキューの最大長は、50に設定されます。キューが埋まっているときに接続要求があると、接続は拒否されます。
+> 
+> backlog引数は、ソケットの保留されている接続の要求された最大数です。正確なセマンティックスは実装に固有です。たとえば、実装が最大長を規定していたり、パラメータをまったく無視したりする場合があります。指定される値は0より大きくなければいけません。0以下の場合は、実装固有のデフォルトが使用されます。
+
+
 
 integration.xml のbacklogを明示してみること。ただしAPI docにある通り、プラットフォームによって効果は異なる恐れがある。
 Mac 10.14だと100指定でうまくいっている。 +
